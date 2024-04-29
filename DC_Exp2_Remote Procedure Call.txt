@@ -1,0 +1,146 @@
+// Server.java //////////////////////////////////////////////////////
+
+import java.io.*;
+import java.net.*;
+
+public class Server {
+    public static void main(String[] args) {
+        try (ServerSocket serverSocket = new ServerSocket(3000)) {
+            System.out.println("Server ready");
+            Socket socket = serverSocket.accept();
+
+            BufferedReader receiveRead = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter pwrite = new PrintWriter(socket.getOutputStream(), true);
+
+            int a, c;
+            String operation;
+            while (true) {
+                operation = receiveRead.readLine();
+                if (operation == null) {
+                    System.out.println("Operation is null");
+                    break;
+                }
+
+                a = Integer.parseInt(receiveRead.readLine());
+
+                if (operation.equals("square")) {
+                    c = a * a;  // Calculate the square
+                    System.out.println("Square = " + c);
+                    pwrite.println("Square = " + c);  // Send back the result
+                } else {
+                    int b = Integer.parseInt(receiveRead.readLine());
+                    // Handle other operations as before
+                    switch (operation) {
+                        case "add":
+                            c = a + b;
+                            System.out.println("Addition = " + c);
+                            pwrite.println("Addition = " + c);
+                            break;
+                        case "sub":
+                            c = a - b;
+                            System.out.println("Subtraction = " + c);
+                            pwrite.println("Subtraction = " + c);
+                            break;
+                        case "mul":
+                            c = a * b;
+                            System.out.println("Multiplication = " + c);
+                            pwrite.println("Multiplication = " + c);
+                            break;
+                        case "div":
+                            if (b != 0) {
+                                c = a / b;
+                                System.out.println("Division = " + c);
+                                pwrite.println("Division = " + c);
+                            } else {
+                                System.out.println("Cannot divide by zero");
+                                pwrite.println("Cannot divide by zero");
+                            }
+                            break;
+                        case "mod":
+                            c = a % b;
+                            System.out.println("Modulus = " + c);
+                            pwrite.println("Modulus = " + c);
+                            break;
+                        default:
+                            System.out.println("Invalid operation: " + operation);
+                            pwrite.println("Invalid operation: " + operation);
+                            break;
+                    }
+                }
+                pwrite.flush();
+            }
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+// Client.java ////////////////////////////////////////////
+
+import java.io.*;
+import java.net.*;
+
+public class Client {
+    public static void main(String[] args) {
+        try (Socket sock = new Socket("127.0.0.1", 3000);
+             BufferedReader keyRead = new BufferedReader(new InputStreamReader(System.in));
+             OutputStream ostream = sock.getOutputStream();
+             PrintWriter pwrite = new PrintWriter(ostream, true);
+             InputStream istream = sock.getInputStream();
+             BufferedReader receiveRead = new BufferedReader(new InputStreamReader(istream))) {
+
+            System.out.println("Client ready, type and press Enter key");
+            String receiveMessage, sendMessage, temp;
+            while (true) {
+                System.out.println("\nEnter operation to perform (add, sub, mul, div, mod, square)....");
+                temp = keyRead.readLine();
+                sendMessage = temp.toLowerCase();
+                pwrite.println(sendMessage);
+
+                if (sendMessage.equals("square")) {
+                    System.out.println("Enter the number to square:");
+                    temp = keyRead.readLine();
+                    if (!isValidInteger(temp)) {
+                        System.out.println("Invalid input. Please enter a valid integer.");
+                        continue; // Skip this iteration and start the loop again
+                    }
+                    pwrite.println(temp);  // Send the number to square
+                } else {
+                    System.out.println("Enter first parameter:");
+                    temp = keyRead.readLine();
+                    if (!isValidInteger(temp)) {
+                        System.out.println("Invalid input. Please enter a valid integer.");
+                        continue; // Skip this iteration and start the loop again
+                    }
+                    pwrite.println(temp);  // Send the first parameter
+                    System.out.println("Enter second parameter:");
+                    temp = keyRead.readLine();
+                    if (!isValidInteger(temp)) {
+                        System.out.println("Invalid input. Please enter a valid integer.");
+                        continue; // Skip this iteration and start the loop again
+                    }
+                    pwrite.println(temp);  // Send the second parameter
+                }
+
+                pwrite.flush();
+
+                if ((receiveMessage = receiveRead.readLine()) != null) {
+                    System.out.println("Result from server: " + receiveMessage);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static boolean isValidInteger(String input) {
+        try {
+            Integer.parseInt(input);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+}

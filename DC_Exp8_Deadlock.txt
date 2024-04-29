@@ -1,0 +1,74 @@
+///////// Exp8.java //////////////////////////
+
+import java.util.*;
+
+class Exp8 {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int graph[][];
+        boolean isDeadlock = false;
+        System.out.println("Enter the number of processes");
+        int n = sc.nextInt();
+        graph = new int[n][n];
+        System.out.println("Enter the wait-for graph:");
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                graph[i][j] = sc.nextInt();
+            }
+        }
+        System.out.println("The wait-for graph is:");
+        new Exp8().Display(graph);
+        System.out.println("Enter the process initiating probe");
+        int init = sc.nextInt();
+        System.out.println("Initiating probe...");
+
+        // Initialize visited array for deadlock detection
+        boolean[] visited = new boolean[n];
+        Arrays.fill(visited, false);
+
+        // Perform DFS to detect cycles
+        for (int i = 0; i < n; i++) {
+            if (!visited[i] && detectCycle(i, visited, graph, new boolean[n])) {
+                isDeadlock = true;
+                break;
+            }
+        }
+
+        if (isDeadlock)
+            System.out.println("The Deadlock has been detected...");
+        else
+            System.out.println("No Deadlock has been detected...");
+    }
+
+    public void Display(int[][] mat) {
+        int n = mat[0].length;
+        int m = mat.length;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                System.out.print(mat[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    private static boolean detectCycle(int vertex, boolean[] visited, int[][] graph, boolean[] stack) {
+        if (stack[vertex]) {
+            return true; // Cycle detected
+        }
+        if (visited[vertex]) {
+            return false; // Already visited, no cycle
+        }
+
+        visited[vertex] = true;
+        stack[vertex] = true;
+
+        for (int i = 0; i < graph[vertex].length; i++) {
+            if (graph[vertex][i] == 1 && detectCycle(i, visited, graph, stack)) {
+                return true;
+            }
+        }
+
+        stack[vertex] = false;
+        return false;
+    }
+}
